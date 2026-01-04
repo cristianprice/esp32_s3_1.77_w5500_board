@@ -1,7 +1,11 @@
 #include <TFT_eSPI.h>
 #include <lvgl.h>
 #include <esp_heap_caps.h>
+#include "s3_ethernet.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
+S3Ethernet ethernet;       // Ethernet instance
 TFT_eSPI tft = TFT_eSPI(); // TFT instance
 
 // LVGL display buffer size (in pixels)
@@ -23,6 +27,13 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
   tft.endWrite();
 
   lv_disp_flush_ready(disp);
+}
+
+// Function to run ethernet.begin() in a FreeRTOS task
+void ethernetTask(void *pvParameters)
+{
+  ethernet.begin();
+  vTaskDelete(NULL); // Delete the task after execution
 }
 
 void setup()
@@ -84,10 +95,14 @@ void setup()
 
     lv_obj_center(btn_label);
   }
+
+  // Create a FreeRTOS task for ethernet.begin()
+  // xTaskCreate(ethernetTask, "EthernetTask", 4096, NULL, 1, NULL);
 }
 
 void loop()
 {
   lv_timer_handler();
+  // Serial.println("Has ip: " + String(ethernet.hasIP() ? "Yes" : "No"));
   delay(5);
 }
