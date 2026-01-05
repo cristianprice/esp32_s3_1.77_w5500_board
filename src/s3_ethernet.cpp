@@ -4,6 +4,10 @@
 #include <cstdlib>
 #include <ctime>
 
+#define LINK_SPEED_100MBPS 1
+#define LINK_SPEED_10MBPS 2
+#define LINK_SPEED_DOWN 0
+
 static const char *TAG = "S3Ethernet";
 
 // Define your MAC
@@ -22,18 +26,6 @@ bool S3Ethernet::begin()
 {
     // Generate a random MAC address
     generateRandomMAC(g_mac);
-
-    // Reset the W5500
-    pinMode(W550_RST, OUTPUT);
-    digitalWrite(W550_RST, LOW);
-    delay(100);
-    digitalWrite(W550_RST, HIGH);
-    delay(150);
-
-    // SPI begin with custom pins
-    SPI.begin(W550_SCLK, W550_MISO, W550_MOSI); // SCK, MISO, MOSI
-
-    // Initialize W5500 CS
     Ethernet.init(W550_CS);
 
     Serial.println("Starting Ethernet...");
@@ -56,6 +48,20 @@ bool S3Ethernet::begin()
 
 bool S3Ethernet::hasIP()
 {
+    if (Ethernet.linkStatus() == LINK_SPEED_100MBPS)
+    {
+        ESP_LOGI(TAG, "Ethernet link is up at 100Mbps");
+    }
+    else if (Ethernet.linkStatus() == LINK_SPEED_10MBPS)
+    {
+        ESP_LOGI(TAG, "Ethernet link is up at 10Mbps");
+    }
+    else
+    {
+        ESP_LOGW(TAG, "Ethernet link is down");
+        return false;
+    }
+
     IPAddress ip = Ethernet.localIP();
     ESP_LOGI(TAG, "Current IP: %s", ip.toString().c_str());
     return ip != INADDR_NONE;
