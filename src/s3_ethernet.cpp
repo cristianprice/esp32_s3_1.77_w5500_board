@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <ctime>
 
+#ifdef __ETHERNET_ENABLED__
+
 #define LINK_SPEED_100MBPS 1
 #define LINK_SPEED_10MBPS 2
 #define LINK_SPEED_DOWN 0
@@ -26,6 +28,17 @@ bool S3Ethernet::begin()
 {
     // Generate a random MAC address
     generateRandomMAC(g_mac);
+
+// Reset the W5500
+#ifndef __GRAPHICS_ENABLED__
+    pinMode(W550_RST, OUTPUT);
+    digitalWrite(W550_RST, LOW);
+    delay(100);
+    digitalWrite(W550_RST, HIGH);
+    delay(150);
+    SPI.begin(W550_SCLK, W550_MISO, W550_MOSI); // SCK, MISO, MOSI
+#endif
+
     Ethernet.init(W550_CS);
 
     Serial.println("Starting Ethernet...");
@@ -66,3 +79,5 @@ bool S3Ethernet::hasIP()
     ESP_LOGI(TAG, "Current IP: %s", ip.toString().c_str());
     return ip != INADDR_NONE;
 }
+
+#endif // __ETHERNET_ENABLED__

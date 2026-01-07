@@ -1,5 +1,6 @@
 #include "s3_graphics.h"
 
+#ifdef __GRAPHICS_ENABLED__
 #define LV_BUF_SIZE (TFT_WIDTH * TFT_HEIGHT * 40) // 40 lines of display buffer
 
 // ---------------------------
@@ -32,23 +33,41 @@ void S3Graphics::my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_co
 // ---------------------------
 void S3Graphics::create_buttons()
 {
-    const char *btn_labels[] = {LV_SYMBOL_OK " OK", LV_SYMBOL_LEFT " Left", LV_SYMBOL_RIGHT " Right"};
+    /*Create a chart*/
+    lv_obj_t *chart = lv_chart_create(lv_scr_act());
+    lv_obj_set_size(chart, TFT_WIDTH - 10, TFT_HEIGHT - 10);
+    lv_obj_center(chart);
+    lv_chart_set_type(chart, LV_CHART_TYPE_LINE); /*Show lines and points too*/
 
-    int btn_width = TFT_WIDTH / 2;
-    int btn_height = TFT_HEIGHT / 5;
+    /*Add two data series*/
+    lv_chart_series_t *ser1 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_RED), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_series_t *ser2 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_GREEN), LV_CHART_AXIS_SECONDARY_Y);
 
-    for (int i = 0; i < 3; i++)
-    {
-        lv_obj_t *btn = lv_btn_create(lv_scr_act());
-        lv_obj_set_size(btn, btn_width, btn_height);
-        lv_obj_align(btn, LV_ALIGN_CENTER, 0, (i - 1) * (btn_height + 10));
+    /*Set the next points on 'ser1'*/
+    lv_chart_set_next_value(chart, ser1, 10);
+    lv_chart_set_next_value(chart, ser1, 10);
+    lv_chart_set_next_value(chart, ser1, 10);
+    lv_chart_set_next_value(chart, ser1, 10);
+    lv_chart_set_next_value(chart, ser1, 10);
+    lv_chart_set_next_value(chart, ser1, 10);
+    lv_chart_set_next_value(chart, ser1, 10);
+    lv_chart_set_next_value(chart, ser1, 30);
+    lv_chart_set_next_value(chart, ser1, 70);
+    lv_chart_set_next_value(chart, ser1, 90);
 
-        lv_obj_t *btn_label = lv_label_create(btn);
-        lv_label_set_text(btn_label, btn_labels[i]);
+    /*Directly set points on 'ser2'*/
+    ser2->y_points[0] = 90;
+    ser2->y_points[1] = 70;
+    ser2->y_points[2] = 65;
+    ser2->y_points[3] = 65;
+    ser2->y_points[4] = 65;
+    ser2->y_points[5] = 65;
+    ser2->y_points[6] = 65;
+    ser2->y_points[7] = 65;
+    ser2->y_points[8] = 65;
+    ser2->y_points[9] = 65;
 
-        lv_obj_set_style_text_font(btn_label, &lv_font_montserrat_12, 0);
-        lv_obj_center(btn_label);
-    }
+    lv_chart_refresh(chart); /*Required after direct set*/
 }
 
 // ---------------------------
@@ -59,6 +78,7 @@ void S3Graphics::begin()
     // Initialize TFT
     tft.init();
     tft.setRotation(3);
+    tft.setSwapBytes(true); // <<< CRITICAL
     tft.fillScreen(TFT_BLACK);
 
     // Allocate LVGL draw buffer in PSRAM
@@ -101,3 +121,5 @@ void S3Graphics::loop()
 {
     lv_timer_handler();
 }
+
+#endif // __GRAPHICS_ENABLED__

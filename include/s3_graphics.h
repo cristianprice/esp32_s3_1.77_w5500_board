@@ -6,6 +6,8 @@
 #include <freertos/task.h>
 #include "esp_log.h"
 
+#ifdef __GRAPHICS_ENABLED__
+
 // ---------------------------
 // Graphics class declaration
 // ---------------------------
@@ -24,3 +26,5 @@ private:
     static void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
     void create_buttons();
 };
+
+#endif // __GRAPHICS_ENABLED__
