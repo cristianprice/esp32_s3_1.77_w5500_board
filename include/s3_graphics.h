@@ -1,10 +1,14 @@
 #pragma once
 #include <TFT_eSPI.h>
-#include <lvgl.h>
-#include <esp_heap_caps.h>
+
+extern "C"
+{
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "esp_log.h"
+#include <lvgl.h>
+#include <esp_heap_caps.h>
+}
 
 #ifdef __GRAPHICS_ENABLED__
 

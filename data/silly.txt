@@ -1,0 +1,1 @@
+Perfect! With PlatformIO, the workflow is slightly different than Arduino IDE, but you can still embed static files using LittleFS (or SPIFFS) and have them included in the firmware automatically. Here’s a detailed guide tailored for PlatformIO and ESP32/ESP32-S3.

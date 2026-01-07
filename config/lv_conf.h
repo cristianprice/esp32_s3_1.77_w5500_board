@@ -50,17 +50,17 @@
 
 #if LV_MEM_CUSTOM
 
-    /* Use ESP32 PSRAM allocator */
-    #define LV_MEM_CUSTOM_INCLUDE <esp_heap_caps.h>
+    /* Use Arduino ESP32 PSRAM allocator */
+    #define LV_MEM_CUSTOM_INCLUDE <esp32-hal-psram.h>
 
     #define LV_MEM_CUSTOM_ALLOC(size) \
-        heap_caps_malloc(size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)
+        ps_malloc(size)
 
     #define LV_MEM_CUSTOM_FREE(ptr) \
-        heap_caps_free(ptr)
+        free(ptr)
 
     #define LV_MEM_CUSTOM_REALLOC(ptr, size) \
-        heap_caps_realloc(ptr, size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)
+        ps_realloc(ptr, size)
 
 #else
 
