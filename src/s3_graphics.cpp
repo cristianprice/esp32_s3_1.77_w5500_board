@@ -3,12 +3,85 @@
 #ifdef __GRAPHICS_ENABLED__
 #define LV_BUF_SIZE (TFT_WIDTH * TFT_HEIGHT * 40) // 40 lines of display buffer
 
+#define TERMINAL_BUFFER_SIZE 128
+
 // ---------------------------
 // Constructor
 // ---------------------------
 S3Graphics::S3Graphics() : tft(TFT_eSPI())
 {
     buf1 = nullptr;
+}
+
+void S3Graphics::create_terminal()
+{
+    // Create the text area to occupy full screen
+    terminal_txtarea = lv_textarea_create(lv_scr_act());
+    lv_obj_set_size(terminal_txtarea, TFT_WIDTH, TFT_HEIGHT);
+
+    // Optional styling
+    lv_obj_set_style_text_font(terminal_txtarea, &lv_font_montserrat_10, 0);
+    lv_obj_set_style_text_color(terminal_txtarea, lv_color_white(), 0);
+    lv_obj_set_style_bg_color(terminal_txtarea, lv_color_black(), 0);
+
+    // Allocate buffer in PSRAM
+    terminal_buffer = (char *)heap_caps_malloc(TERMINAL_BUFFER_SIZE, MALLOC_CAP_SPIRAM);
+    if (!terminal_buffer)
+    {
+        Serial.println("Failed to allocate terminal buffer!");
+        return;
+    }
+    terminal_buffer[0] = '\0'; // start empty
+
+    lv_obj_set_scrollbar_mode(terminal_txtarea, LV_SCROLLBAR_MODE_AUTO);
+    lv_textarea_set_one_line(terminal_txtarea, false);
+    lv_textarea_set_cursor_click_pos(terminal_txtarea, false);
+
+    // Assign buffer to the textarea
+    lv_textarea_set_text(terminal_txtarea, terminal_buffer);
+}
+
+void S3Graphics::terminal_add_message(const char *msg)
+{
+    if (!terminal_txtarea || !terminal_buffer || !msg)
+        return;
+
+    size_t msg_len = strlen(msg);
+    if (msg_len == 0)
+        return;
+
+    // +1 for '\n', +1 for '\0'
+    size_t required = msg_len + 2;
+
+    // If message will not fit → clear terminal
+    if (buffer_len + required >= TERMINAL_BUFFER_SIZE)
+    {
+        buffer_len = 0;
+        terminal_buffer[0] = '\0';
+
+        // Optional visual separator after clear
+        const char *clear_msg = "--- terminal cleared ---\n";
+        size_t clear_len = strlen(clear_msg);
+
+        if (clear_len < TERMINAL_BUFFER_SIZE)
+        {
+            memcpy(terminal_buffer, clear_msg, clear_len);
+            buffer_len = clear_len;
+            terminal_buffer[buffer_len] = '\0';
+        }
+    }
+
+    // Append message
+    memcpy(terminal_buffer + buffer_len, msg, msg_len);
+    buffer_len += msg_len;
+
+    terminal_buffer[buffer_len++] = '\n';
+    terminal_buffer[buffer_len] = '\0';
+    Serial.println(terminal_buffer);
+
+    // Update LVGL
+    lv_textarea_set_text(terminal_txtarea, terminal_buffer);
+    lv_textarea_set_cursor_pos(terminal_txtarea, LV_TEXTAREA_CURSOR_LAST);
 }
 
 // ---------------------------
@@ -26,48 +99,6 @@ void S3Graphics::my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_co
     self->tft.endWrite();
 
     lv_disp_flush_ready(disp);
-}
-
-// ---------------------------
-// Button creation
-// ---------------------------
-void S3Graphics::create_buttons()
-{
-    /*Create a chart*/
-    lv_obj_t *chart = lv_chart_create(lv_scr_act());
-    lv_obj_set_size(chart, TFT_WIDTH - 10, TFT_HEIGHT - 10);
-    lv_obj_center(chart);
-    lv_chart_set_type(chart, LV_CHART_TYPE_LINE); /*Show lines and points too*/
-
-    /*Add two data series*/
-    lv_chart_series_t *ser1 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_RED), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_series_t *ser2 = lv_chart_add_series(chart, lv_palette_main(LV_PALETTE_GREEN), LV_CHART_AXIS_SECONDARY_Y);
-
-    /*Set the next points on 'ser1'*/
-    lv_chart_set_next_value(chart, ser1, 10);
-    lv_chart_set_next_value(chart, ser1, 10);
-    lv_chart_set_next_value(chart, ser1, 10);
-    lv_chart_set_next_value(chart, ser1, 10);
-    lv_chart_set_next_value(chart, ser1, 10);
-    lv_chart_set_next_value(chart, ser1, 10);
-    lv_chart_set_next_value(chart, ser1, 10);
-    lv_chart_set_next_value(chart, ser1, 30);
-    lv_chart_set_next_value(chart, ser1, 70);
-    lv_chart_set_next_value(chart, ser1, 90);
-
-    /*Directly set points on 'ser2'*/
-    ser2->y_points[0] = 90;
-    ser2->y_points[1] = 70;
-    ser2->y_points[2] = 65;
-    ser2->y_points[3] = 65;
-    ser2->y_points[4] = 65;
-    ser2->y_points[5] = 65;
-    ser2->y_points[6] = 65;
-    ser2->y_points[7] = 65;
-    ser2->y_points[8] = 65;
-    ser2->y_points[9] = 65;
-
-    lv_chart_refresh(chart); /*Required after direct set*/
 }
 
 // ---------------------------
@@ -111,7 +142,7 @@ void S3Graphics::begin()
     lv_disp_drv_register(&disp_drv);
 
     // Create buttons
-    create_buttons();
+    create_terminal();
 }
 
 // ---------------------------
