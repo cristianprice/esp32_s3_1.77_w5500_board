@@ -7,4 +7,4 @@
 #define SD_D2 33
 #define SD_D3 34
 
-void setup_fs();
+bool setup_fs();
