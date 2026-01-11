@@ -19,6 +19,7 @@ void update_sometimes(void *parameter);
 
 void setup()
 {
+  delay(5000);
 
   Serial.begin(115200);
   graphics.begin();
@@ -52,9 +53,8 @@ uint32_t loopCounter = 0;
 void loop()
 {
   loop_ftp();
-  graphics.terminal_process_queue(); // update messages safely
   graphics.loop();
-  delay(100);
+  delay(1);
 }
 
 void update_sometimes(void *parameter)

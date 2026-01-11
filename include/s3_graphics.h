@@ -35,20 +35,22 @@ public:
     void terminal_process_queue()
     {
         std::lock_guard<std::mutex> lock(queueMutex);
-        Serial.print("Queue Size: ");
-        Serial.println(terminalQueue.size());
-
         while (!terminalQueue.empty())
         {
-            terminal_add_message(terminalQueue.front().c_str());
+            auto msg = terminalQueue.front().c_str();
+            Serial.printf("Process queue: %s\n", msg);
+            terminal_add_message(msg);
             terminalQueue.pop();
         }
     }
+
+    lv_obj_t *terminal_time_label = nullptr;
 
 private:
     TFT_eSPI tft;
     lv_disp_draw_buf_t draw_buf;
     lv_color_t *buf1;
+    lv_color_t *buf2;
 
     lv_obj_t *terminal_txtarea = nullptr;
     char *terminal_buffer;
