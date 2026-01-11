@@ -19,7 +19,6 @@ void update_sometimes(void *parameter);
 
 void setup()
 {
-  delay(5000);
 
   Serial.begin(115200);
   graphics.begin();
