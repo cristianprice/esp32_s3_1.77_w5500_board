@@ -8,7 +8,6 @@
 
 static void time_update_cb(lv_timer_t *timer)
 {
-    Serial.printf("Tick: %d\n", timer);
     S3Graphics *gfx = (S3Graphics *)timer->user_data;
 
     time_t now;
@@ -78,7 +77,7 @@ void S3Graphics::create_terminal()
 
     lv_textarea_set_text(terminal_txtarea, terminal_buffer);
 
-    lv_timer_create(time_update_cb, 1000, this);
+    lv_timer_create(time_update_cb, 400, this);
 }
 
 void S3Graphics::terminal_add_message(const char *msg)
